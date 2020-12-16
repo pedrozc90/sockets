@@ -1,3 +1,5 @@
+package samples;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,9 +9,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Logger;
 
-public class TCPServer {
+public class Sample {
 
-    private static final Logger log = Logger.getLogger(TCPServer.class.getSimpleName());
+    private static final Logger log = Logger.getLogger(Sample.class.getSimpleName());
 
     private static final int PORT = 9000;
     private static final String HOST = "192.168.0.1";
