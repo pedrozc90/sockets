@@ -8,31 +8,44 @@ public class Server {
 
     private static final Logger log = Logger.getLogger(Server.class.getSimpleName());
 
-    private static final int PORT = 4000;
+    private ServerSocket server;
+    private static boolean alive = true;
 
-    public static void main(String[] args) {
-        init(PORT);
+    public Server(int port) {
+        try {
+            server = new ServerSocket(port);
+            log.info("Server is listening to port " + port);
+        } catch (IOException e) {
+            log.severe("Unable to create server socket on port " + port);
+            System.exit(-1);
+        }
+
+        while (alive) {
+            try {
+                Socket clientSocket = server.accept();
+                ServerThread thread = new ServerThread(clientSocket);
+                thread.start();
+            } catch (IOException e) {
+                log.severe("Exception encountered on accept. Ignoring...");
+                e.printStackTrace();
+            }
+        }
+
+        stop();
     }
 
-    public static void init(int port) {
-        try (ServerSocket server = new ServerSocket(port)) {
-            if (!server.isBound()) {
-                server.bind(new InetSocketAddress("127.0.0.1", port));
-            }
-            log.info("Server is listening to port " + port);
-
-            while (true) {
-                try (Socket socket = server.accept()) {
-                    log.info("Client connected to " + socket.getLocalAddress());
-                    ServerThread thread = new ServerThread(socket);
-                    thread.start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void stop() {
+        try {
+            server.close();
+            alive = false;
+        } catch (Exception e) {
+            log.severe("Unable to stop server");
+            System.exit(-1);
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        new Server(9000);
     }
 
 }
