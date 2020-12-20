@@ -1,3 +1,2 @@
-**/*.iml
-**/.idea
-**/out
+# npm packages
+node_modules

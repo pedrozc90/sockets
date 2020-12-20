@@ -1,0 +1,17 @@
+{
+    "verbose": true,
+    "watch": [
+        "./src"
+    ],
+    "ext": "ts, env",
+    "ignore": [
+        "node_modules/**/*",
+        "dist/*",
+        "docs/*"
+    ],
+    "delay": "500",
+    "env": {},
+    "execMap": {
+        "ts": "node --inspect=9102 -r ts-node/register"
+    }
+}

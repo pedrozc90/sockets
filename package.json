@@ -1,0 +1,39 @@
+{
+    "name": "sockets",
+    "version": "1.0.0",
+    "description": "basic tcp socker server/client",
+    "main": "dist/index.js",
+    "scripts": {
+        "start:server": "nodemon src/server.ts",
+        "start:client": "nodemon --config nodemon-client.json src/client.ts",
+        "start:client2": "nodemon --config nodemon-client-2.json src/client.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/PedroZC90/sockets.git"
+    },
+    "keywords": [
+        "nodejs",
+        "typescript",
+        "tcp",
+        "sockets",
+        "client",
+        "protocol"
+    ],
+    "author": "PedroZC90 <pedrozc90@gmail.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/PedroZC90/sockets/issues"
+    },
+    "homepage": "https://github.com/PedroZC90/sockets#readme",
+    "dependencies": {
+        "colors": "^1.4.0"
+    },
+    "devDependencies": {
+        "@types/node": "^14.14.14",
+        "dotenv": "^8.2.0",
+        "nodemon": "^2.0.6",
+        "ts-node": "^9.1.1",
+        "typescript": "^4.1.3"
+    }
+}
