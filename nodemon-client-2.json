@@ -10,7 +10,9 @@
         "docs/*"
     ],
     "delay": "500",
-    "env": {},
+    "env": {
+        "NAME": "node-02"
+    },
     "execMap": {
         "ts": "node --inspect=9102 -r ts-node/register"
     }

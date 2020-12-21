@@ -4,11 +4,13 @@ import readline from "readline";
 
 import dotenv from "dotenv";
 import { onClientError } from "./utils";
+import { randomInt } from "crypto";
 
 dotenv.config({ path: path.join(__dirname, "../config", "client.env") });
 
 const port: number = Number.parseInt(process.env.PORT || "9000");
 const host: string = process.env.HOST || "localhost";
+const name: string = process.env.NAME || `node-${ randomInt(1000) }`;
 
 const prompt: readline.Interface = readline.createInterface({
     input: process.stdin,
@@ -25,16 +27,15 @@ const client: net.Socket = new net.Socket({
 client.connect({ port, host }, () => {
     console.info(`connection established with ${client.remoteAddress}:${client.remotePort}`);
 
+    client.write(`hand-shake ${ name }`);
+
     prompt.addListener("line", (input: string) => {
         client.write(input);
-        if (input === "exit") {
-            // client.destroy();
-        }
     });
 });
 
 client.on("data", (data: Buffer) => {
-    console.info("server >", data.toString());
+    console.info("server:", data.toString());
 });
 
 client.on("end", () => {

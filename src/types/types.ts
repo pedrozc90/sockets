@@ -1,3 +1,5 @@
+import { Socket } from "net";
+
 export interface ServerError extends Error {
     name: string;
     message: string;
@@ -7,4 +9,16 @@ export interface ServerError extends Error {
     syscall?: string;
     address?: string;
     port?: number;
+}
+
+export interface Client {
+    name: string;
+    socket: Socket;
+}
+
+export interface History {
+    timestamp: Date;
+    send_by: string;
+    message: string;
+    data: Buffer;
 }
