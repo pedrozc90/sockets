@@ -2,25 +2,20 @@ import net from "net";
 import path from "path";
 import fs from "fs";
 
-import dotenv, { config } from "dotenv";
+import dotenv from "dotenv";
 
-import { normalizeAddress, normalizeSocketAddress, onServerError } from "./utils";
+import { fill, normalizeAddress, normalizeSocketAddress, onServerError } from "./utils";
 import { Client, History } from "./types";
-import { randomInt } from "crypto";
 
 const root_dir: string = path.join(__dirname, "..");
 const config_dir: string = path.join(root_dir, "config");
 const assets_dir: string = path.join(root_dir, "assets");
+if (!fs.existsSync(assets_dir)) fs.mkdirSync(assets_dir);
 
 dotenv.config({ path: path.join(config_dir, "server.env") });
 
 const port: number = Number.parseInt(process.env.PORT || "9000");
 const host: string = process.env.HOST || "localhost";
-
-const clients: Client[] = [];
-const history: History[] = [];
-
-const server: net.Server = net.createServer();
 
 const get_regexp = new RegExp(/^\/get\s?(.*)/g);
 const cast_regexp = new RegExp(/^\/cast\s?(.*)/g);
@@ -28,10 +23,15 @@ const list_regexp = new RegExp(/^\/list\s?(.*)/g);
 const rename_regexp = new RegExp(/^\/rename\s?(.*)/g);
 const hs_regexp = new RegExp(/^hand-shake\s?(.*)/g);
 
+const clients: Client[] = [];
+const history: History[] = [];
+
+const server: net.Server = net.createServer();
+
 server.on("connection", (socket: net.Socket) => {
 
     // store client connections
-    clients.push({ name: "unknown", socket });
+    clients.push({ name: "unknown", socket, address: normalizeSocketAddress(socket) });
     
     broadcast(`${normalizeSocketAddress(socket)} joined the server.`, socket);
 
@@ -58,7 +58,7 @@ server.on("connection", (socket: net.Socket) => {
         } else if (payload.startsWith("/help")) {
             return help(payload);
         } else {
-            socket.write(`Invalid message ${payload}`);
+            console.log(`Invalid message ${payload}`);
         }
     });
 
@@ -93,7 +93,13 @@ server.on("connection", (socket: net.Socket) => {
 
     // FUNCTIONS
     function help(data: string): void {
-        console.log("HELP");
+        const message = `HELP:\n
+        \r/get <filename>"
+        \r/list files|users     -- return a list of users or files to download.
+        \r/cast <message>       -- create a broadcast.
+        \r/rename               -- change your name.
+        `;
+        socket.write(message);
     }
 
     function hand_shake(data: string): void {
@@ -120,31 +126,32 @@ server.on("connection", (socket: net.Socket) => {
         if (!match) return;
 
         if (match[1] === "users") {
-            clients.forEach((v, index) => {
-                if (v.socket === socket) return;
-                socket.write(`${index}. ${v.name}\n`);
-            });
+            if (clients.length > 1) {
+                clients.forEach((v, index) => {
+                    //if (v.socket === socket) return;
+                    socket.write(`${index}. ${v.name} - ${v.address}`);
+                });
+            } else {
+                socket.write("No users found.");
+            }
         } else if (match[1] === "files") {
             fs.readdirSync(assets_dir).forEach((v, index) => {
-                socket.write(`${index}. ${v}\n`);
+                socket.write(`${index}. ${v}`);
             });
         }
     }
 
     function get_file(data: string): void {
         const match = get_regexp.exec(data);
-        // if (!match) return;
+        if (!match) return;
 
-        const filename = (match) ? match[1] : "video-games-review-6.json";
+        const filename = (match[1].length > 1) ? match[1] : "document-01.txt";
 
         const filestream = fs.createReadStream(path.join(assets_dir, filename));
 
-        filestream.on("readable", () => {
-            let data_transpered;
-            while (data_transpered = filestream.read()) {
-                socket.write(data_transpered);
-            }
-            console.log("READALBE ENDED");
+        filestream.on("data", (chunk: Buffer | string) => {
+            const data = (typeof chunk == "string") ? Buffer.from(chunk) : chunk;
+            socket.write(Buffer.concat([ Buffer.from(`${ fill("file", 8) }${ fill(data.length, 8) }${ fill(filename, 128)}`), data ]))
         });
 
         filestream.on("end", () => {
@@ -153,7 +160,7 @@ server.on("connection", (socket: net.Socket) => {
     }
 
     function exit(): void {
-        broadcast(`${normalizeSocketAddress(socket)} left the server.`, socket);
+        broadcast(`${normalizeSocketAddress(socket)} left the server.\n`, socket);
         socket.end("bye");
     }
 
@@ -165,9 +172,11 @@ server.on("connection", (socket: net.Socket) => {
     
     function broadcast(message: string, socket: net.Socket): void {
         console.log(`[${new Date().toISOString()}]`, message);
-        clients.filter((v) => v.socket !== socket)
+        const address: string = normalizeSocketAddress(socket);
+        clients.filter((v) => v.address !== address)
             .forEach((v) => {
                 v.socket.write(message);
+                v.socket.pipe(socket);
             });
     }
 

@@ -1,12 +1,20 @@
 import net from "net";
 import path from "path";
+import fs from "fs";
 import readline from "readline";
 
 import dotenv from "dotenv";
-import { onClientError } from "./utils";
+import { normalizeInt, onClientError } from "./utils";
 import { randomInt } from "crypto";
 
-dotenv.config({ path: path.join(__dirname, "../config", "client.env") });
+const root_dir: string = path.join(__dirname, "..");
+const config_dir: string = path.join(root_dir, "config");
+const assets_dir: string = path.join(root_dir, "assets/downloads");
+const output_dir: string = path.join(root_dir, "assets/downloads");
+if (!fs.existsSync(assets_dir)) fs.mkdirSync(assets_dir);
+if (!fs.existsSync(output_dir)) fs.mkdirSync(output_dir);
+
+dotenv.config({ path: path.join(config_dir, "client.env") });
 
 const port: number = Number.parseInt(process.env.PORT || "9000");
 const host: string = process.env.HOST || "localhost";
@@ -35,8 +43,19 @@ client.connect({ port, host }, () => {
 });
 
 client.on("data", (data: Buffer) => {
-    const content: string = data.toString();
-    console.info(`[${new Date().toISOString()}]`, "[SERVER]", content);
+    const header: string = data.slice(0, 8).toString().trim();
+    if (header === "file") {
+        const size: number | undefined = normalizeInt(data.slice(8, 16).toString());
+        const filename: string | undefined = data.slice(16, 144).toString().trim();
+        if (size === undefined || filename === undefined) return;
+        
+        const content: Buffer = data.slice(144, -1);
+
+        fs.writeFileSync(path.join(output_dir, filename), content, { flag: "w" });
+    } else {
+        const content: string = data.toString();
+        console.info(`[${new Date().toISOString()}]`, "[SERVER]", content);
+    }
 });
 
 client.on("end", () => {

@@ -13,6 +13,7 @@ export interface ServerError extends Error {
 
 export interface Client {
     name: string;
+    address: string;
     socket: Socket;
 }
 
