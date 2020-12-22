@@ -35,7 +35,8 @@ client.connect({ port, host }, () => {
 });
 
 client.on("data", (data: Buffer) => {
-    console.info("server:", data.toString());
+    const content: string = data.toString();
+    console.info(`[${new Date().toISOString()}]`, "[SERVER]", content);
 });
 
 client.on("end", () => {
