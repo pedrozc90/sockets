@@ -7,9 +7,8 @@ import dotenv from "dotenv";
 import { normalizeInt, onClientError } from "./utils";
 import { randomInt } from "crypto";
 
-const root_dir: string = path.join(__dirname, "..");
-const config_dir: string = path.join(root_dir, "config");
-const assets_dir: string = path.join(root_dir, "assets");
+const config_dir: string = path.join(__dirname, "../config");
+const assets_dir: string = path.join(__dirname, "../assets");
 const output_dir: string = path.join(assets_dir, "downloads");
 if (!fs.existsSync(assets_dir)) fs.mkdirSync(assets_dir);
 if (!fs.existsSync(output_dir)) fs.mkdirSync(output_dir);
