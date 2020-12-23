@@ -135,8 +135,9 @@ server.on("connection", (socket: net.Socket) => {
                 socket.write("No users found.");
             }
         } else if (match[1] === "files") {
-            fs.readdirSync(assets_dir).forEach((v, index) => {
-                socket.write(`${index}. ${v}`);
+            const result: string[] = fs.readdirSync(assets_dir)
+            result.forEach((v, index) => {
+                socket.write(v + "\n");
             });
         }
     }
