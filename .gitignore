@@ -1,3 +1,6 @@
 # npm packages
 node_modules
-assets
+
+# files
+assets/*
+logs
